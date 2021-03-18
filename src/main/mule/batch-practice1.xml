@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4e5dfffa-af9e-43dd-a7f2-c267de5cc61e" >
+		<http:listener-connection host="0.0.0.0" port="8088" />
+	</http:listener-config>
+	<flow name="batch-practice1Flow" doc:id="f8b57f63-654d-4287-b527-19240e9d2537" >
+		<http:listener doc:name="Listener" doc:id="c03c6b93-948c-4308-b75a-495453bb239d" path="/batch1" config-ref="HTTP_Listener_config"/>
+		<set-payload value="#[[1,2,3,4,5,6]]" doc:name="[1,2,3,4,5,6]" doc:id="17a4f6f9-f6aa-4aca-b05a-bdd1428c2a8b" />
+		<batch:job jobName="batch-practice1Batch_Job" doc:id="6651010f-f0c1-4b42-a883-b6da8604704d" >
+			<batch:process-records >
+				<batch:step name="Batch_Step1" doc:id="7018ee21-4d63-44eb-b196-81d2763ad7c7" acceptExpression="#[(payload mod 2) == 0]">
+					<ee:transform doc:name="Transform Message" doc:id="77765a3a-aca8-44f3-9d92-52e07b68237e" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload * 10]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="0fa5131a-d140-4b1a-99b2-361aa5e3ea1d" size="2">
+						<logger level="INFO" doc:name="Logger" doc:id="40d565e6-b3e8-4e1f-a4ae-9408ed966f8d" message='#["Bulk save the values :" ++ write(payload, "application/json")]'/>
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+		</batch:job>
+	</flow>
+</mule>
